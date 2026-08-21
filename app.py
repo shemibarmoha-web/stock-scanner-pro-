@@ -20,24 +20,23 @@ selected_method = st.selectbox("בחר שיטת ניתוח מתוך הרשימה
 
 st.info(f"הסבר: {analysis_methods[selected_method]}")
 
-# שלב 2: הזנת מניה (יופיע רק אחרי בחירת שיטה)
+# שלב 2: הזנת מניה
 stock_symbol = st.text_input("הקלד את שם/סמל המניה שברצונך לנתח (למשל: בזק, דלק קבוצה):")
 
-# שלב 3: ביצוע הניתוח
-if st.button("בצע ניתוח") and stock_symbol:
-    st.divider()
-    st.header(f"תוצאות ניתוח עבור: {stock_symbol}")
-    
-    # כאן יבוא הלוגיקה לכל שיטה
-    if "1. ניתוח טכני" in selected_method:
-        st.write("מנתח דפוסי נרות וממוצעים נעים...")
-        st.success("זוהתה תבנית חיובית בגרף הטכני.")
-    elif "2. ניתוח פונדמנטלי" in selected_method:
-        st.write("מנתח דוחות כספיים ויחסי הון...")
-        st.warning("יחס ה-P/E נמצא בטווח האטרקטיבי.")
+# שלב 3: ביצוע הניתוח (כפתור יחיד שבודק את שניהם)
+if st.button("בצע ניתוח"):
+    if stock_symbol:
+        st.divider()
+        st.header(f"תוצאות ניתוח עבור: {stock_symbol}")
+        
+        if "1. ניתוח טכני" in selected_method:
+            st.write("מנתח דפוסי נרות וממוצעים נעים...")
+            st.success("זוהתה תבנית חיובית בגרף הטכני.")
+        elif "2. ניתוח פונדמנטלי" in selected_method:
+            st.write("מנתח דוחות כספיים ויחסי הון...")
+            st.warning("יחס ה-P/E נמצא בטווח האטרקטיבי.")
+        else:
+            st.write(f"מבצע ניתוח מורכב לפי שיטת {selected_method}...")
+            st.write("הניתוח הסתיים בהצלחה.")
     else:
-        st.write(f"מבצע ניתוח מורכב לפי שיטת {selected_method}...")
-        st.write("הניתוח הסתיים בהצלחה.")
-
-elif st.button("בצע ניתוח"):
-    st.error("אנא הזן שם מניה כדי להמשיך.")
+        st.error("אנא הזן שם מניה כדי להמשיך.")
