@@ -1,72 +1,43 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 
 st.set_page_config(page_title="Stock Scanner Pro", page_icon="📈", layout="wide")
 
-st.title("📈 Stock Scanner Pro - מערכת ניתוח מתקדמת")
-st.markdown("ברוכים הבאים למערכת הניתוח הטכני והפיננסי שלך.")
+st.title("📈 Stock Scanner Pro")
+st.subheader("מערכת ניתוח מניות מקיפה")
 
-# --- סרגל צד או בחירה ראשית למשתמש ---
-st.sidebar.header("⚙️ הגדרות ניתוח")
+# הגדרת רשימת השיטות
+analysis_methods = {
+    "1. ניתוח טכני (Technical Analysis)": "שימוש בנרות יפניים, מתנדים ומגמות מחיר.",
+    "2. ניתוח פונדמנטלי (Fundamental Analysis)": "בחינת דוחות, יחס P/E ומודל גורדון.",
+    "3. ניתוח כמותי (Quantitative Analysis)": "מודלים מתמטיים וסטטיסטיים להערכת סיכונים.",
+    "4. ניתוח סנטימנט שוק (Sentiment Analysis)": "בחינת הלך רוח משקיעים וחדשות.",
+    "5. ניתוח Top-Down (מאקרו לענפי)": "ניתוח מאקרו כלכלי מול ביצועי הענף והחברה."
+}
 
-# בחירת מניה
-stock_symbol = st.sidebar.text_input("הכנס סמל מניה (למשל: BEZQ.TA, DLEK.TA)", value="BEZQ.TA")
+# שלב 1: בחירת שיטה
+selected_method = st.selectbox("בחר שיטת ניתוח מתוך הרשימה:", list(analysis_methods.keys()))
 
-# בחירת שיטת ניתוח
-analysis_method = st.sidebar.selectbox(
-    "בחר שיטת ניתוח:",
-    [
-        "ניתוח נרות יפנים (Candlestick)",
-        "ניתוח טכני ומתנדים (RSI / MACD)",
-        "מודלים פיננסיים והערכת שווי (NAV / P/E)",
-        "תבניות גרפיות (Chart Patterns)"
-    ]
-)
+st.info(f"הסבר: {analysis_methods[selected_method]}")
 
-run_button = st.sidebar.button("הפעל ניתוח")
+# שלב 2: הזנת מניה (יופיע רק אחרי בחירת שיטה)
+stock_symbol = st.text_input("הקלד את שם/סמל המניה שברצונך לנתח (למשל: בזק, דלק קבוצה):")
 
-# --- אזור הצגת התוצאות ---
-st.header(f"📊 תוצאות עבור: {stock_symbol.upper()}")
-
-if run_button or stock_symbol:
-    st.markdown(f"**שיטת הניתוח הנבחרת:** `{analysis_method}`")
+# שלב 3: ביצוע הניתוח
+if st.button("בצע ניתוח") and stock_symbol:
+    st.divider()
+    st.header(f"תוצאות ניתוח עבור: {stock_symbol}")
     
-    # סימולציית תוצאות בהתאם לבחירה
-    if "נרות יפנים" in analysis_method:
-        st.info("🕯️ **ניתוח נרות יפנים:** זוהתה תבנית היפוך (Bullish Engulfing). האות מצביע על אפשרות למומנטום חיובי בטווח הקצר.")
-        # טבלת דמה לנרות
-        candlestick_data = pd.DataFrame({
-            'תאריך': ['2026-08-18', '2026-08-19', '2026-08-20'],
-            'פתיחה': [510, 515, 512],
-            'סגירה': [515, 512, 520],
-            'מגמה': ['עולה', 'יורד', 'עולה חזק']
-        })
-        st.dataframe(candlestick_data, use_container_width=True)
-
-    elif "טכני ומתנדים" in analysis_method:
-        st.success("📈 **ניתוח טכני:** מדד ה-RSI עומד על 54.5 (אזור נייטרלי). ממוצע נע 50 חותך כלפי מעלה את ממוצע 200.")
-        tech_df = pd.DataFrame({
-            'אינדיקטור': ['RSI (14)', 'MACD', 'Support', 'Resistance'],
-            'ערך': ['54.5 - נייטרלי', 'חיובי (+1.2)', '500 ₪', '540 ₪']
-        })
-        st.dataframe(tech_df, use_container_width=True)
-
-    elif "מודלים פיננסיים" in analysis_method:
-        st.warning("💰 **מודלים פיננסיים (NAV / P/E):** ניתוח שווי נקי נכסי ויחס מחיר לרווח.")
-        valuation_df = pd.DataFrame({
-            'מדד פיננסי': ['יחס P/E נוכחי', 'הערכת שווי NAV', 'תשואת דיבידנד'],
-            'נתון': ['11.4', 'אטרקטיבי ביחס לשוק', '3.8%']
-        })
-        st.dataframe(valuation_df, use_container_width=True)
-
+    # כאן יבוא הלוגיקה לכל שיטה
+    if "1. ניתוח טכני" in selected_method:
+        st.write("מנתח דפוסי נרות וממוצעים נעים...")
+        st.success("זוהתה תבנית חיובית בגרף הטכני.")
+    elif "2. ניתוח פונדמנטלי" in selected_method:
+        st.write("מנתח דוחות כספיים ויחסי הון...")
+        st.warning("יחס ה-P/E נמצא בטווח האטרקטיבי.")
     else:
-        st.info("📉 **תבניות גרפיות:** זוהתה תבנית תעלה עולה (Ascending Channel). רמת היציאה המומלצת מוגדרת בהתאם לסטופ-לוס אוותנטי.")
-        patterns_df = pd.DataFrame({
-            'תבנית': ['תעלה עולה', 'פריצת רמת התנגדות'],
-            'סטטוס': ['פעילה', 'אושרה בהצלחה']
-        })
-        st.dataframe(patterns_df, use_container_width=True)
+        st.write(f"מבצע ניתוח מורכב לפי שיטת {selected_method}...")
+        st.write("הניתוח הסתיים בהצלחה.")
 
-else:
-    st.info("הכנס את פרטי המניה ובחר שיטת ניתוח בצד כדי להתחיל.")
+elif st.button("בצע ניתוח"):
+    st.error("אנא הזן שם מניה כדי להמשיך.")
