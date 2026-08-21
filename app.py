@@ -7,7 +7,11 @@ st.set_page_config(page_title="Stock Scanner Pro", page_icon="📈", layout="wid
 st.title("📈 Stock Scanner Pro")
 st.subheader("מערכת ניתוח מניות מתקדמת")
 
-# תפריט ניווט במסך הראשי (או בסרגל הצד)
+# פונקציית עזר לכותרת
+def get_clean_title(page_name):
+    return page_name.split(". ")[1] if ". " in page_name else page_name
+
+# תפריט ניווט במסך הראשי
 analysis_page = st.radio(
     "בחר את מסך הניתוח הרצוי:",
     [
@@ -26,7 +30,8 @@ st.divider()
 stock_symbol = st.text_input("הקלד את שם/סמל המניה לניתוח (למשל: בזק, דלק קבוצה):", value="דלק קבוצה")
 
 if stock_symbol:
-    st.header(f"📊 מסך ניתוח: {stock_page_title(analysis_page)} עבור {stock_symbol}")
+    clean_name = get_clean_title(analysis_page)
+    st.header(f"📊 מסך ניתוח: {clean_name} עבור {stock_symbol}")
     
     # נתונים בסיסיים
     if "בזק" in stock_symbol:
@@ -116,6 +121,3 @@ if stock_symbol:
 
 else:
     st.info("אנא הזן שם מניה כדי לצפות במסך הניתוח הנבחר.")
-
-def stock_page_title(page_name):
-    return page_name.split(". ")[1] if ". " in page_name else page_name
