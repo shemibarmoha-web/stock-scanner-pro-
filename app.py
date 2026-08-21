@@ -4,270 +4,71 @@ import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+st.set_page_config(page_title="Stock Scanner Pro", page_icon="📈", layout="wide")
 
-# =========================================================
-# CONFIG
-# =========================================================
+st.title("📈 Stock Scanner Pro")
+st.subheader("מערכת ניתוח מניות מתקדמת - גרף מסחר מקצועי")
 
-st.set_page_config(
-    page_title="StockFlow",
-    page_icon="⚡",
-    layout="wide",
-    initial_sidebar_state="expanded"
+# תפריט ניווט
+analysis_page = st.sidebar.selectbox(
+    "🧭 בחר מסך ניתוח:",
+    [
+        "🕯️ גרף נרות יפניים",
+        "📈 ניתוח טכני",
+        "💰 ניתוח פונדמנטלי"
+    ]
 )
 
+st.divider()
+stock_symbol = st.text_input("הקלד את סמל המניה:", value="דלק קבוצה")
 
-# =========================================================
-# MODERN CSS
-# =========================================================
+if stock_symbol:
+    st.header(f"📊 תוצאות עבור: {stock_symbol}")
+    
+    if "גרף נרות יפניים" in analysis_page:
+        st.subheader("🕯️ גרף נרות יפניים ונפח מסחר")
+        
+        # נתונים לדוגמה
+        df = pd.DataFrame({
+            'Date': ['2026-08-17', '2026-08-18', '2026-08-19', '2026-08-20', '2026-08-21'],
+            'Open': [83.5, 83.0, 84.2, 85.0, 85.5],
+            'High': [85.0, 84.5, 86.5, 86.2, 86.8],
+            'Low': [82.5, 82.0, 83.8, 84.8, 85.1],
+            'Close': [83.0, 84.2, 86.15, 85.5, 86.5],
+            'Volume': [30, 50, 85, 40, 70]
+        })
 
-st.markdown("""
-<style>
+        fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
+                            vertical_spacing=0.03, row_heights=[0.7, 0.3])
 
-    /* Main background */
-    .stApp {
-        background:
-            radial-gradient(circle at 10% 10%, rgba(124, 58, 237, 0.15), transparent 30%),
-            radial-gradient(circle at 90% 20%, rgba(6, 182, 212, 0.12), transparent 25%),
-            linear-gradient(135deg, #080b14 0%, #101629 100%);
-        color: #f8fafc;
-    }
+        fig.add_trace(go.Candlestick(
+            x=df['Date'], open=df['Open'], high=df['High'],
+            low=df['Low'], close=df['Close'], name='נרות',
+            increasing_line_color='#26a69a', decreasing_line_color='#ef5350'
+        ), row=1, col=1)
 
-    /* Sidebar */
-    section[data-testid="stSidebar"] {
-        background: rgba(13, 18, 33, 0.92);
-        border-right: 1px solid rgba(255,255,255,0.08);
-    }
+        colors = ['#26a69a' if row['Close'] >= row['Open'] else '#ef5350' for index, row in df.iterrows()]
+        fig.add_trace(go.Bar(x=df['Date'], y=df['Volume'], name='נפח', marker_color=colors), row=2, col=1)
 
-    /* Headers */
-    h1, h2, h3 {
-        color: #ffffff !important;
-        font-family: Arial, sans-serif;
-    }
+        fig.update_layout(
+            template='plotly_dark',
+            xaxis_rangeslider_visible=False,
+            height=500,
+            margin=dict(l=20, r=20, t=20, b=20)
+        )
 
-    /* Hero */
-    .hero {
-        padding: 35px 40px;
-        border-radius: 28px;
-        background: linear-gradient(
-            135deg,
-            rgba(124, 58, 237, 0.9),
-            rgba(6, 182, 212, 0.65)
-        );
-        margin-bottom: 25px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.35);
-    }
+        st.plotly_chart(fig, use_container_width=True)
 
-    .hero-title {
-        font-size: 46px;
-        font-weight: 800;
-        color: white;
-        margin: 0;
-    }
+    elif "ניתוח טכני" in analysis_page:
+        st.subheader("📈 ממוצעים נעים")
+        tech_data = pd.DataFrame(np.random.randn(10, 2) * 1.5 + 85, columns=['שער', 'ממוצע נע'])
+        st.line_chart(tech_data)
 
-    .hero-subtitle {
-        font-size: 18px;
-        color: rgba(255,255,255,0.8);
-        margin-top: 8px;
-    }
+    else:
+        st.subheader("💰 פונדמנטלי ומכפילים")
+        st.markdown("מכפיל רווח נוכחי: **11.2**")
+        fund_data = pd.DataFrame({'NAV מוערך': [78, 82, 85, 91]})
+        st.area_chart(fund_data)
 
-    /* Glass cards */
-    .glass-card {
-        background: rgba(255,255,255,0.055);
-        border: 1px solid rgba(255,255,255,0.09);
-        backdrop-filter: blur(16px);
-        border-radius: 22px;
-        padding: 22px;
-        margin-bottom: 15px;
-    }
-
-    /* Metric cards */
-    .metric-card {
-        background: linear-gradient(
-            145deg,
-            rgba(255,255,255,0.08),
-            rgba(255,255,255,0.025)
-        );
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 22px;
-        padding: 22px;
-        min-height: 120px;
-        box-shadow: 0 15px 40px rgba(0,0,0,0.18);
-    }
-
-    .metric-label {
-        font-size: 14px;
-        color: #94a3b8;
-        margin-bottom: 8px;
-    }
-
-    .metric-value {
-        font-size: 28px;
-        font-weight: 800;
-        color: #ffffff;
-    }
-
-    .positive {
-        color: #22c55e;
-    }
-
-    .negative {
-        color: #ef4444;
-    }
-
-    /* Section title */
-    .section-title {
-        font-size: 24px;
-        font-weight: 700;
-        margin-top: 25px;
-        margin-bottom: 15px;
-    }
-
-    /* Streamlit buttons */
-    .stButton > button {
-        width: 100%;
-        border-radius: 14px;
-        border: 0;
-        padding: 12px 18px;
-        font-weight: 700;
-        background: linear-gradient(135deg, #7c3aed, #06b6d4);
-        color: white;
-        transition: 0.2s;
-    }
-
-    .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 30px rgba(124,58,237,0.35);
-    }
-
-    /* Dataframe */
-    div[data-testid="stDataFrame"] {
-        border-radius: 18px;
-        overflow: hidden;
-        border: 1px solid rgba(255,255,255,0.08);
-    }
-
-    /* Hide Streamlit branding */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-
-</style>
-""", unsafe_allow_html=True)
-
-
-# =========================================================
-# DATA
-# =========================================================
-
-@st.cache_data
-def generate_market_data(days=250):
-
-    np.random.seed(42)
-
-    dates = pd.date_range(
-        end=pd.Timestamp.today().normalize(),
-        periods=days,
-        freq="B"
-    )
-
-    returns = np.random.normal(0.0007, 0.018, days)
-
-    close = 100 * np.exp(np.cumsum(returns))
-
-    open_price = np.zeros(days)
-    open_price[0] = close[0]
-
-    for i in range(1, days):
-        open_price[i] = close[i - 1] * np.random.uniform(0.985, 1.015)
-
-    high = np.maximum(open_price, close) * np.random.uniform(1.002, 1.03, days)
-    low = np.minimum(open_price, close) * np.random.uniform(0.97, 0.998, days)
-
-    volume = np.random.randint(500_000, 5_000_000, days)
-
-    return pd.DataFrame({
-        "Date": dates,
-        "Open": open_price,
-        "High": high,
-        "Low": low,
-        "Close": close,
-        "Volume": volume
-    })
-
-
-df = generate_market_data()
-
-
-# =========================================================
-# CALCULATIONS
-# =========================================================
-
-def calculate_rsi(series, period=14):
-
-    delta = series.diff()
-
-    gain = delta.clip(lower=0)
-    loss = -delta.clip(upper=0)
-
-    avg_gain = gain.rolling(period).mean()
-    avg_loss = loss.rolling(period).mean()
-
-    rs = avg_gain / avg_loss
-
-    return 100 - (100 / (1 + rs))
-
-
-def calculate_macd(series):
-
-    ema_fast = series.ewm(span=12, adjust=False).mean()
-    ema_slow = series.ewm(span=26, adjust=False).mean()
-
-    macd = ema_fast - ema_slow
-    signal = macd.ewm(span=9, adjust=False).mean()
-
-    histogram = macd - signal
-
-    return macd, signal, histogram
-
-
-def detect_patterns(data):
-
-    data = data.copy()
-
-    body = abs(data["Close"] - data["Open"])
-
-    lower_shadow = (
-        np.minimum(data["Open"], data["Close"])
-        - data["Low"]
-    )
-
-    upper_shadow = (
-        data["High"]
-        - np.maximum(data["Open"], data["Close"])
-    )
-
-    data["Hammer"] = (
-        (lower_shadow >= body * 2) &
-        (upper_shadow <= body)
-    )
-
-    data["Inverted Hammer"] = (
-        (upper_shadow >= body * 2) &
-        (lower_shadow <= body)
-    )
-
-    return data
-
-
-# =========================================================
-# PLOTLY THEME
-# =========================================================
-
-def apply_chart_theme(fig, height=500):
-
-    fig.update_layout(
-        height=height,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(255,255,255,0.02)",
-        font=dict(color="#cbd5e1"),
-       
+else:
+    st.info("אנא הזן שם מניה.")
