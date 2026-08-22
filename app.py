@@ -74,7 +74,7 @@ if stock_symbol:
         elif timeframe == "שנה אחרונה":
             df = df.tail(250)
 
-        # יצירת הסאב-פלוט עם חלוקה נקייה
+        # יצירת מבנה נקי לגרף ולנפח
         fig = make_subplots(
             rows=2, cols=1, 
             shared_xaxes=True, 
@@ -82,35 +82,36 @@ if stock_symbol:
             row_heights=[0.8, 0.2]
         )
 
-        # נרות יפניים בצבעים קלאסיים וברורים
+        # נרות יפניים
         fig.add_trace(go.Candlestick(
             x=df['Date'], open=df['Open'], high=df['High'],
             low=df['Low'], close=df['Close'], showlegend=False,
             increasing_line_color='#00897b', decreasing_line_color='#e53935'
         ), row=1, col=1)
 
-        # עמודות נפח מסחר
+        # נפח מסחר
         colors = ['#00897b' if row['Close'] >= row['Open'] else '#e53935' for index, row in df.iterrows()]
         fig.add_trace(go.Bar(
             x=df['Date'], y=df['Volume'], showlegend=False,
             marker_color=colors
         ), row=2, col=1)
 
-        # הצמדת ציר המחירים לצד ימין
+        # הצמדת צירים לימין
         fig.update_yaxes(side="right", row=1, col=1, automargin=True)
         fig.update_yaxes(side="right", row=2, col=1, automargin=True)
 
-        # נעילת ציר ה-Y כך שהמחירים תמיד יישארו במקום והנרות לא יברחו למעלה/למטה
+        # נעילת ציר המחירים (Y) כך שלא יזוז למעלה ולמטה בטעות
         fig.update_yaxes(fixedrange=True)
+        # פתיחת ציר הזמן (X) לגרירה חלקה
         fig.update_xaxes(fixedrange=False)
 
-        # עיצוב לבן נקי, תפוסה מלאה מקצה לקצה בלי שוליים מיותרים ומצב גרירה חופשי לצדדים
+        # עיצוב לבן נקי מקצה לקצה
         fig.update_layout(
             template='plotly_white',
             paper_bgcolor='#ffffff',
             plot_bgcolor='#ffffff',
             xaxis_rangeslider_visible=False,
-            dragmode='pan',  # גרירה חלקה ויציבה של הציר בלי קופסאות אפורות
+            dragmode='pan',  # גרירה חלקה של הצירים במגע
             height=380,
             margin=dict(l=0, r=2, t=5, b=5)
         )
