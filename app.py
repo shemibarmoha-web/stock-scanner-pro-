@@ -74,51 +74,51 @@ if stock_symbol:
         elif timeframe == "שנה אחרונה":
             df = df.tail(250)
 
-        # יצירת הסאב-פלוט עם חלוקה מקצועית לגרף מחיר ולנפח מסחר למטה
+        # יצירת הסאב-פלוט עם חלוקה נקייה
         fig = make_subplots(
             rows=2, cols=1, 
             shared_xaxes=True, 
             vertical_spacing=0.03, 
-            row_heights=[0.78, 0.22]
+            row_heights=[0.8, 0.2]
         )
 
-        # נרות יפניים עם צבעים מקצועיים (ירוק/אדום קלאסיים)
+        # נרות יפניים בצבעים קלאסיים וברורים
         fig.add_trace(go.Candlestick(
             x=df['Date'], open=df['Open'], high=df['High'],
             low=df['Low'], close=df['Close'], showlegend=False,
-            increasing_line_color='#26a69a', decreasing_line_color='#ef5350',
-            increasing_fillcolor='#26a69a', decreasing_fillcolor='#ef5350'
+            increasing_line_color='#00897b', decreasing_line_color='#e53935'
         ), row=1, col=1)
 
-        # עמודות נפח מסחר תואמות למגמת הנר
-        colors = ['#26a69a' if row['Close'] >= row['Open'] else '#ef5350' for index, row in df.iterrows()]
+        # עמודות נפח מסחר
+        colors = ['#00897b' if row['Close'] >= row['Open'] else '#e53935' for index, row in df.iterrows()]
         fig.add_trace(go.Bar(
             x=df['Date'], y=df['Volume'], showlegend=False,
             marker_color=colors
         ), row=2, col=1)
 
-        # התאמתצירי המחירים והנפח לצד ימין
-        fig.update_yaxes(side="right", row=1, col=1, automargin=True, gridcolor="#2a2e39")
-        fig.update_yaxes(side="right", row=2, col=1, automargin=True, gridcolor="#2a2e39")
-        fig.update_xaxes(gridcolor="#2a2e39")
+        # הצמדת ציר המחירים לצד ימין
+        fig.update_yaxes(side="right", row=1, col=1, automargin=True)
+        fig.update_yaxes(side="right", row=2, col=1, automargin=True)
 
-        # הגדרת פריסה מקצועית ונקייה (Dark Theme מלא בסטייל טריידינג-וויו)
+        # נעילת ציר ה-Y כך שהמחירים תמיד יישארו במקום והנרות לא יברחו למעלה/למטה
+        fig.update_yaxes(fixedrange=True)
+        fig.update_xaxes(fixedrange=False)
+
+        # עיצוב לבן נקי, תפוסה מלאה מקצה לקצה בלי שוליים מיותרים ומצב גרירה חופשי לצדדים
         fig.update_layout(
-            template='plotly_dark',
-            paper_bgcolor='#131722',
-            plot_bgcolor='#131722',
+            template='plotly_white',
+            paper_bgcolor='#ffffff',
+            plot_bgcolor='#ffffff',
             xaxis_rangeslider_visible=False,
-            dragmode='zoom',  # החזרת אפשרות הזום המקורית עם המסגרת האפורה לבחירת אזור
-            height=420,
-            margin=dict(l=0, r=0, t=10, b=10)
+            dragmode='pan',  # גרירה חלקה ויציבה של הציר בלי קופסאות אפורות
+            height=380,
+            margin=dict(l=0, r=2, t=5, b=5)
         )
 
-        # קונפיגורציית מגע מתקדמת
         config_options = {
             'displayModeBar': False,
-            'scrollZoom': True,
-            'doubleClick': 'reset',
-            'responsive': True
+            'scrollZoom': False,
+            'doubleClick': 'reset'
         }
 
         st.plotly_chart(fig, use_container_width=True, config=config_options)
