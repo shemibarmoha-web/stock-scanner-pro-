@@ -7,9 +7,9 @@ from plotly.subplots import make_subplots
 st.set_page_config(page_title="Stock Scanner Pro", page_icon="📈", layout="wide")
 
 st.title("📈 Stock Scanner Pro")
-st.subheader("מערכת ניתוח מניות מתקדמת - גרף מסחר מקצועי")
+st.subheader("מערכת ניתוח מניות מתקדמת - גרף מסחר היסטורי")
 
-# תפריט ניווט מלא ומסודר בסרגל הצד
+# תפריט ניווט ראשי
 analysis_page = st.selectbox(
     "🧭 בחר מסך ניתוח:",
     [
@@ -47,72 +47,82 @@ if stock_symbol:
 
     # הצגת הדפים לפי בחירת המשתמש
     if "גרף נרות יפניים" in analysis_page:
-        st.subheader("🕯️ גרף נרות יפניים ונפח מסחר (TradingView Style)")
-        st.write("גרף מקצועי הכולל גופים, פתילות (Wicks), צבעי עולים ויורדים וגרף נפח מסחר תחתון:")
+        st.subheader("🕯️ גרף נרות יפניים היסטורי עם ציר זמן (TradingView Style)")
+        st.write("השתמש בסרגל הזמן התחתון או לגרור את הגרף כדי לצפות בתנועת המחירים לאורך זמן:")
+        
+        # יצירת סימולציית נתונים היסטורית רחבה (לאורך חודשים רבים)
+        np.random.seed(42)
+        dates = pd.date_range(start="2025-01-01", end="2026-08-21", freq="B") # ימי מסחר
+        n = len(dates)
+        
+        # בניית מסלול מחירים סימולציוני ריאליסטי
+        returns = np.random.normal(0.0005, 0.02, n)
+        price_path = 100 * np.cumprod(1 + returns)
         
         df = pd.DataFrame({
-            'Date': ['2026-08-13', '2026-08-14', '2026-08-17', '2026-08-18', '2026-08-19', '2026-08-20', '2026-08-21'],
-            'Open': [80.0, 82.0, 83.5, 83.0, 84.2, 85.0, 85.5],
-            'High': [83.0, 84.0, 85.0, 84.5, 86.5, 86.2, 86.8],
-            'Low': [79.5, 81.5, 82.5, 82.0, 83.8, 84.8, 85.1],
-            'Close': [82.0, 83.5, 83.0, 84.2, 86.15, 85.5, 86.5],
-            'Volume': [45, 60, 30, 50, 85, 40, 70]
+            'Date': dates,
+            'Open': price_path * (1 + np.random.uniform(-0.01, 0.01, n)),
+            'High': price_path * (1 + np.random.uniform(0.005, 0.025, n)),
+            'Low': price_path * (1 - np.random.uniform(0.005, 0.025, n)),
+            'Close': price_path,
+            'Volume': np.random.randint(20, 150, n)
         })
 
         fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
                             vertical_spacing=0.03, row_heights=[0.7, 0.3])
 
+        # הוספת נרות יפניים
         fig.add_trace(go.Candlestick(
             x=df['Date'], open=df['Open'], high=df['High'],
             low=df['Low'], close=df['Close'], name='נרות יפניים',
             increasing_line_color='#26a69a', decreasing_line_color='#ef5350'
         ), row=1, col=1)
 
+        # הוספת נפח מסחר
         colors = ['#26a69a' if row['Close'] >= row['Open'] else '#ef5350' for index, row in df.iterrows()]
         fig.add_trace(go.Bar(
             x=df['Date'], y=df['Volume'], name='נפח מסחר (Volume)',
             marker_color=colors
         ), row=2, col=1)
 
+        # הפעלת ציר הזמן והסליידר ההיסטורי
         fig.update_layout(
             template='plotly_dark',
-            xaxis_rangeslider_visible=False,
-            height=600,
-            margin=dict(l=20, r=20, t=20, b=20)
+            xaxis_rangeslider_visible=True,  # מציג את סרגל הזמן בתחתית הגרף
+            height=650,
+            margin=dict(l=20, r=20, t=20, b=20),
+            xaxis2_rangeslider_visible=False
         )
 
         st.plotly_chart(fig, use_container_width=True)
-        st.success("💡 **תובנה:** הנרות הירוקים וגידול בנפח המסחר מעידים על לחץ קניות חיובי.")
+        st.success("💡 **טיפ:** ניתן לגרור את הידיות בסרגל התחתון כדי להתמקד בתקופות זמן ספציפיות או להרחיב את המבט לאחור.")
 
     elif "טכני ומתנדים" in analysis_page:
         st.subheader("📈 ממוצעים נעים ומתנדים (RSI / MACD)")
-        tech_data = pd.DataFrame(np.random.randn(10, 2) * 1.5 + 85, columns=['שער בפועל', 'ממוצע נע 20'])
+        tech_data = pd.DataFrame(np.random.randn(30, 2) * 1.5 + 85, columns=['שער בפועל', 'ממוצע נע 20'])
         st.line_chart(tech_data)
-        st.info("מדד RSI עומד על 58.4 – מצביע על מומנטום חיובי בריא שאינו נמצא עדיין באזור קניות יתר.")
+        st.info("מדד RSI עומד על 58.4 – מצביע על מומנטום חיובי בריא.")
 
     elif "פונדמנטלי" in analysis_page:
         st.subheader("💰 שווי נקי נכסי ותשואות (NAV)")
-        fund_data = pd.DataFrame({'NAV מוערך': [78, 82, 85, 91]})
+        fund_data = pd.DataFrame({'NAV מוערך': [78, 82, 85, 91, 95]})
         st.area_chart(fund_data)
-        st.markdown(f"מכפיל הרווח הנוכחי עומד על **{pe}**, המעיד על תמחור אטרקטיבי יחסית לענף.")
+        st.markdown(f"מכפיל הרווח הנוכחי עומד על **{pe}**.")
 
     elif "כמותי" in analysis_page:
         st.subheader("🔢 תנודתיות וסיכון")
-        quant_data = pd.DataFrame({'תנודתיות יומית (%)': [1.1, 1.4, 0.8, 1.3]})
+        quant_data = pd.DataFrame({'תנודתיות יומית (%)': [1.1, 1.4, 0.8, 1.3, 1.0]})
         st.bar_chart(quant_data)
-        st.info("מדד הסטיית תקן מצביע על יציבות יחסית במסחר היומי.")
 
     elif "סנטימנט שוק" in analysis_page:
         st.subheader("📰 סנטימנט משקיעים ברשתות")
-        sent_data = pd.DataFrame({'מדד סנטימנט': [50, 54, 59, 62]})
+        sent_data = pd.DataFrame({'מדד סנטימנט': [50, 54, 59, 62, 65]})
         st.line_chart(sent_data)
-        st.success("הסנטימנט הכללי ברשתות החברתיות וקבוצות המסחר הוא חיובי מתון.")
 
     else:
         st.subheader("🌐 סביבת מאקרו וענף (Top-Down)")
-        macro_data = pd.DataFrame({'מדד סקטוריאלי': [180, 185, 192, 198]})
+        macro_data = pd.DataFrame({'מדד סקטוריאלי': [180, 185, 192, 198, 205]})
         st.area_chart(macro_data)
-        st.info("הסקטור נסחר במגמת עלייה עקב נתוני מאקרו מעודדים ותמיכה ממשלתית בענף.")
 
 else:
     st.info("אנא הזן שם מניה.")
