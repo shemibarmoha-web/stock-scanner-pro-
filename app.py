@@ -46,14 +46,12 @@ if stock_symbol:
     if "גרף נרות יפניים" in analysis_page:
         st.subheader("🕯️ גרף נרות יפניים ונפח מסחר")
         
-        # בחירת טווח זמן בצורה נקייה ונוחה למשתמש
         timeframe = st.radio(
             "בחר טווח זמן להצגה:",
             ["חודש אחרון", "3 חודשים", "שנה אחרונה", "כל ההיסטוריה"],
             horizontal=True
         )
 
-        # יצירת נתונים
         np.random.seed(42)
         dates = pd.date_range(start="2021-01-01", end="2026-08-22", freq="B")
         n = len(dates)
@@ -69,33 +67,37 @@ if stock_symbol:
             'Volume': np.random.randint(30, 200, n)
         })
 
-        # סינון הנתונים לפי בחירת המשתמש בכפתורים
         if timeframe == "חודש אחרון":
             df = df.tail(22)
         elif timeframe == "3 חודשים":
             df = df.tail(66)
         elif timeframe == "שנה אחרונה":
             df = df.tail(250)
-        # "כל ההיסטוריה" מציג את כל הנתונים
 
         fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
                             vertical_spacing=0.03, row_heights=[0.75, 0.25])
 
+        # הוספת נרות יפניים
         fig.add_trace(go.Candlestick(
             x=df['Date'], open=df['Open'], high=df['High'],
             low=df['Low'], close=df['Close'], name='נרות',
             increasing_line_color='#26a69a', decreasing_line_color='#ef5350'
         ), row=1, col=1)
 
+        # התאמת צבעי עמודות נפח המסחר לירוק ואדום בהתאמה למגמת הנר
         colors = ['#26a69a' if row['Close'] >= row['Open'] else '#ef5350' for index, row in df.iterrows()]
         fig.add_trace(go.Bar(
-            x=df['Date'], y=df['Volume'], name='נפח',
+            x=df['Date'], y=df['Volume'], name='נפח מסחר',
             marker_color=colors
         ), row=2, col=1)
 
+        # ציר המחירים והנפח מימין
+        fig.update_yaxes(side="right", row=1, col=1)
+        fig.update_yaxes(side="right", row=2, col=1)
+
         fig.update_layout(
             template='plotly_dark',
-            xaxis_rangeslider_visible=False,  # הסרת הסליידר המכוער והחזרת ניקיון לגרף
+            xaxis_rangeslider_visible=False,
             height=550,
             margin=dict(l=10, r=10, t=10, b=10)
         )
