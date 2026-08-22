@@ -77,33 +77,34 @@ if stock_symbol:
         fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
                             vertical_spacing=0.02, row_heights=[0.8, 0.2])
 
-        # נרות יפניים
+        # נרות יפניים (ללא הצגת מקרא עמוס בתוך הגרף)
         fig.add_trace(go.Candlestick(
             x=df['Date'], open=df['Open'], high=df['High'],
-            low=df['Low'], close=df['Close'], name='נרות',
+            low=df['Low'], close=df['Close'], showlegend=False,
             increasing_line_color='#26a69a', decreasing_line_color='#ef5350'
         ), row=1, col=1)
 
         # נפח מסחר
         colors = ['#26a69a' if row['Close'] >= row['Open'] else '#ef5350' for index, row in df.iterrows()]
         fig.add_trace(go.Bar(
-            x=df['Date'], y=df['Volume'], name='נפח מסחר',
+            x=df['Date'], y=df['Volume'], showlegend=False,
             marker_color=colors
         ), row=2, col=1)
 
-        # ציר מחירים ונפח מימין
-        fig.update_yaxes(side="right", row=1, col=1)
-        fig.update_yaxes(side="right", row=2, col=1)
+        # ציר מחירים מימין בהצמדה מלאה לקצה
+        fig.update_yaxes(side="right", row=1, col=1, automargin=True)
+        fig.update_yaxes(side="right", row=2, col=1, automargin=True)
 
-        # איפוס מוחלט של השוליים כדי שהגרף יימתח עד לקצה המסך
+        # הסרת שוליים לחלוטין כדי שהמספרים ייצמדו לימין הקצה
         fig.update_layout(
             template='plotly_dark',
             xaxis_rangeslider_visible=False,
             height=380,
-            margin=dict(l=0, r=0, t=5, b=5)
+            margin=dict(l=0, r=2, t=5, b=5)
         )
 
-        st.plotly_chart(fig, use_container_width=True)
+        # הסתרת סרגל הכלים הצף (מה שחוסם את הנרות למעלה) דרך ה-config
+        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
     elif "טכני ומתנדים" in analysis_page:
         st.subheader("📈 ממוצעים נעים ומתנדים")
