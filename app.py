@@ -117,7 +117,6 @@ if stock_symbol:
     elif "טכני ומתנדים" in analysis_page:
         st.subheader("📈 מגמת שער וממוצע נע (Moving Average)")
         
-        # בחירת טווח זמנים בדיוק כמו בנרות היפניים
         timeframe_tech = st.radio(
             "בחר טווח זמן להצגה:",
             ["חודש אחרון", "3 חודשים", "שנה אחרונה", "כל ההיסטוריה"],
@@ -134,7 +133,8 @@ if stock_symbol:
         tech_df = pd.DataFrame({
             'Date': dates_tech,
             'Price': price_path_tech,
-            'MA20': pd.Series(price_path_tech).rolling(window=20).mean().fillna(base_price)
+            'MA20': pd.Series(price_path_tech).rolling(window=20).mean().fillna(base_price),
+            'MA50': pd.Series(price_path_tech).rolling(window=50).mean().fillna(base_price)
         })
 
         if timeframe_tech == "חודש אחרון":
@@ -144,7 +144,7 @@ if stock_symbol:
         elif timeframe_tech == "שנה אחרונה":
             tech_df = tech_df.tail(250)
 
-        # יצירת גרף Plotly נקי ולבן לגמרי
+        # יצירת גרף מותאם עם גרירה חלקה ללא שטחים ריקים
         fig_tech = go.Figure()
 
         fig_tech.add_trace(go.Scatter(
@@ -155,8 +155,14 @@ if stock_symbol:
 
         fig_tech.add_trace(go.Scatter(
             x=tech_df['Date'], y=tech_df['MA20'],
-            mode='lines', name='ממוצע נע (MA 20)',
+            mode='lines', name='ממוצע נע (מהיר - 20)',
             line=dict(color='#fb8c00', width=2, dash='dash')
+        ))
+
+        fig_tech.add_trace(go.Scatter(
+            x=tech_df['Date'], y=tech_df['MA50'],
+            mode='lines', name='ממוצע נע (ארוך - 50)',
+            line=dict(color='#8e24aa', width=2, dash='dot')
         ))
 
         fig_tech.update_layout(
@@ -171,19 +177,28 @@ if stock_symbol:
             yaxis=dict(side="right")
         )
         
-        fig_tech.update_xaxes(fixedrange=False)
+        fig_tech.update_xaxes(fixedrange=False, range=[tech_df['Date'].iloc[0], tech_df['Date'].iloc[-1]])
         fig_tech.update_yaxes(fixedrange=True)
 
         st.plotly_chart(fig_tech, use_container_width=True, config={'displayModeBar': False, 'scrollZoom': False, 'doubleClick': 'reset'})
 
-        # הסבר מעשי מפורט לניתוח טכני
+        # --- ניתוח טכני מעמיק ומקצועי ---
         st.markdown("---")
-        st.markdown("### 🎓 איך לקרוא את הממוצע הנע ומה *אמורים לעשות*?")
-        st.markdown("""
-        * **מה רואים בגרף:** הקו הכחול מייצג את תנועת המחיר, והקו הכתום המקוטע (MA20) מייצג את הממוצע הנע. כאשר המחיר מעל הממוצע, המגמה שורית; מתחתיו, המגמה נחלשת.
-        * **🧭 מה הקונים והמוכרים אמורים לעשות?**
-          * **לקונים:** קנייה מומלצת כאשר המחיר נתמך על גבי הממוצע הנע ועולה חזרה כלפי מעלה בתוך מגמה חיובית.
-          * **למוכרים / מחזיקים:** חצייה כלפי מטה של הממוצע הנע מסמנת אזהרה שדורשת שקילת מימוש או הצבת הגנה.
+        st.markdown("### 🎓 ניתוח טכני מתקדם: הבנת המגמה ופעולות למסחר")
+        st.markdown(f"""
+        בניתוח הטכני של מניית **{stock_symbol}** דרך הממוצעים הנעים (MA20 ו-MA50), יש להתייחס למספר כללי ברזל מקצועיים:
+
+        #### 1. ניתוח מבנה המחיר מול הממוצעים הנעים:
+        * **מגמה חיובית (שורית):** כאשר שער המניה (הקו הכחול) נמצא מעל הממוצע המהיר (MA20) והממוצע הארוך (MA50), והממוצע המהיר עצמו נמצא מעל הארוך – השוק נמצא בשליטת קונים מלאה וכל נסיגה מהווה פוטנציאל להצטיידות.
+        * **חציית ממוצעים (Golden Cross / Death Cross):** כאשר הקו המהיר חוצה את הקו הארוך כלפי מעלה, זהו איתות חזק לעוצמת קונים לטווח הבינוני. חצייה כלפי מטה מסמנת מעבר לשליטת מוכרים ודעיכת מומנטום.
+
+        #### 2. 🧭 מה הקונים והמוכרים *חייבים לעשות בפועל*?
+        * **למי שרוצה לקנות (אסטרטגיית איסוף):** 
+          * אל תקנה כשהמחיר רץ באגרסיביות כלפי מעלה ורחוק מהממוצע הנע (מצב של "מתיחת יתר").
+          * המתן לנסיגה (Pullback) שבה המחיר מתכנס ויורד לבחון את אזור הממוצע הנע (MA20). אם המניה מראה שם בלם ונבלמת באזור התמיכה, זוהי נקודת כניסה עם יחס סיכון/סיכוי עדיף בהרבה.
+        * **למי שרוצה למכור / להגן על רווחים (ניהול סיכונים):**
+          * כאשר המחיר מאבד את הממוצע הנע המהיר (MA20) וסוגר מתחתיו בנפח מסחר ער, המשמעות היא שהמוכרים השתלטו על הטווח הקצר. 
+          * במצב כזה, סוחרים מקצועיים **מממשים חלק מהרווח או מרימים פקודת עצירת הפסד (Stop-Loss)** ממש מתחת לקו הממוצע או מתחת לשפל המקומי האחרון כדי למנוע היגררות להפסדים עמוקים יותר.
         """)
 
     elif "פונדמנטלי" in analysis_page:
