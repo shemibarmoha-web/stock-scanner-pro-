@@ -74,9 +74,8 @@ if stock_symbol:
         elif timeframe == "שנה אחרונה":
             df = df.tail(250)
 
-        # יצירת הגרף עם יחס גובה נמוך יותר (רחב ותפוס על כל המסך)
         fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
-                            vertical_spacing=0.02, row_heights=[0.78, 0.22])
+                            vertical_spacing=0.02, row_heights=[0.8, 0.2])
 
         # נרות יפניים
         fig.add_trace(go.Candlestick(
@@ -85,7 +84,7 @@ if stock_symbol:
             increasing_line_color='#26a69a', decreasing_line_color='#ef5350'
         ), row=1, col=1)
 
-        # נפח מסחר בצבעי ירוק ואדום
+        # נפח מסחר
         colors = ['#26a69a' if row['Close'] >= row['Open'] else '#ef5350' for index, row in df.iterrows()]
         fig.add_trace(go.Bar(
             x=df['Date'], y=df['Volume'], name='נפח מסחר',
@@ -96,12 +95,12 @@ if stock_symbol:
         fig.update_yaxes(side="right", row=1, col=1)
         fig.update_yaxes(side="right", row=2, col=1)
 
-        # הגדרת עיצוב: גובה מוקטן (400 פיקסלים) כך שייראה רחב ושטוח
+        # איפוס מוחלט של השוליים כדי שהגרף יימתח עד לקצה המסך
         fig.update_layout(
             template='plotly_dark',
             xaxis_rangeslider_visible=False,
-            height=400,
-            margin=dict(l=5, r=5, t=5, b=5)
+            height=380,
+            margin=dict(l=0, r=0, t=5, b=5)
         )
 
         st.plotly_chart(fig, use_container_width=True)
