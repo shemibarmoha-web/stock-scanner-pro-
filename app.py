@@ -77,7 +77,7 @@ if stock_symbol:
         fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
                             vertical_spacing=0.02, row_heights=[0.8, 0.2])
 
-        # נרות יפניים (ללא הצגת מקרא עמוס בתוך הגרף)
+        # נרות יפניים
         fig.add_trace(go.Candlestick(
             x=df['Date'], open=df['Open'], high=df['High'],
             low=df['Low'], close=df['Close'], showlegend=False,
@@ -91,20 +91,27 @@ if stock_symbol:
             marker_color=colors
         ), row=2, col=1)
 
-        # ציר מחירים מימין בהצמדה מלאה לקצה
+        # ציר מחירים מימין בהצמדה מלאה
         fig.update_yaxes(side="right", row=1, col=1, automargin=True)
         fig.update_yaxes(side="right", row=2, col=1, automargin=True)
 
-        # הסרת שוליים לחלוטין כדי שהמספרים ייצמדו לימין הקצה
+        # הגדרת התנהגות גרירה נכונה למובייל (Pan במקום ריבוע זום אפור)
         fig.update_layout(
             template='plotly_dark',
             xaxis_rangeslider_visible=False,
+            dragmode='pan',  # גרירה חלקה של הגרף במקום פתיחת תיבת זום
             height=380,
             margin=dict(l=0, r=2, t=5, b=5)
         )
 
-        # הסתרת סרגל הכלים הצף (מה שחוסם את הנרות למעלה) דרך ה-config
-        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+        # קונפיגורציה שמונעת תפריטים צפים מיותרים שנתקעים במגע
+        config_options = {
+            'displayModeBar': False,
+            'scrollZoom': True,
+            'doubleClick': 'reset'
+        }
+
+        st.plotly_chart(fig, use_container_width=True, config=config_options)
 
     elif "טכני ומתנדים" in analysis_page:
         st.subheader("📈 ממוצעים נעים ומתנדים")
