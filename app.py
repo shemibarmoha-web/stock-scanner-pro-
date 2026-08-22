@@ -60,8 +60,6 @@ if stock_symbol:
         dates = pd.date_range(start="2021-01-01", end="2026-08-22", freq="B")
         n = len(dates)
         returns = np.random.normal(0.0002, 0.015, n)
-        
-        # בניית מסלול מחירים המתחיל בדיוק ממחיר הבסיס של המניה (למשל 86.15 לדלק)
         price_path = base_price * np.cumprod(1 + returns)
         
         df = pd.DataFrame({
@@ -80,37 +78,22 @@ if stock_symbol:
         elif timeframe == "שנה אחרונה":
             df = df.tail(250)
 
-        # יצירת מבנה נקי לגרף ולנפח
-        fig = make_subplots(
-            rows=2, cols=1, 
-            shared_xaxes=True, 
-            vertical_spacing=0.03, 
-            row_heights=[0.8, 0.2]
-        )
+        fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.03, row_heights=[0.8, 0.2])
 
-        # נרות יפניים
         fig.add_trace(go.Candlestick(
             x=df['Date'], open=df['Open'], high=df['High'],
             low=df['Low'], close=df['Close'], showlegend=False,
             increasing_line_color='#00897b', decreasing_line_color='#e53935'
         ), row=1, col=1)
 
-        # נפח מסחר
         colors = ['#00897b' if row['Close'] >= row['Open'] else '#e53935' for index, row in df.iterrows()]
-        fig.add_trace(go.Bar(
-            x=df['Date'], y=df['Volume'], showlegend=False,
-            marker_color=colors
-        ), row=2, col=1)
+        fig.add_trace(go.Bar(x=df['Date'], y=df['Volume'], showlegend=False, marker_color=colors), row=2, col=1)
 
-        # הצמדת צירים לימין
         fig.update_yaxes(side="right", row=1, col=1, automargin=True)
         fig.update_yaxes(side="right", row=2, col=1, automargin=True)
-
-        # נעילת ציר המחירים ופתיחת ציר הזמן לגרירה חלקה
         fig.update_yaxes(fixedrange=True)
         fig.update_xaxes(fixedrange=False)
 
-        # עיצוב לבן נקי מקצה לקצה
         fig.update_layout(
             template='plotly_white',
             paper_bgcolor='#ffffff',
@@ -121,60 +104,67 @@ if stock_symbol:
             margin=dict(l=0, r=2, t=5, b=5)
         )
 
-        config_options = {
-            'displayModeBar': False,
-            'scrollZoom': False,
-            'doubleClick': 'reset'
-        }
+        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False, 'scrollZoom': False, 'doubleClick': 'reset'})
 
-        st.plotly_chart(fig, use_container_width=True, config=config_options)
-
-        # --- ניתוח טכני מעמיק, לימודי ומעשי לסוחרים ---
         st.markdown("---")
         st.markdown("### 🎓 ניתוח מקצועי: מה רואים ומה בפועל *אמורים לעשות*?")
-
-        if timeframe == "חודש אחרון":
-            st.markdown("""
-            **1. מה רואים בגרף (טווח קצר - דשדוש ותיקון):**
-            * **המבנה:** הנרות קטנים יחסית, עם פתילים (צלליות) עליונים ותחתונים. זה מעיד על חוסר הכרעה זמני והתלבטות בין קונים למוכרים.
-            * **נפח מסחר:** עמודות נפח נמוכות בימים האדומים מראות שאין לחץ מכירות אמיתי או פאניקה בשוק.
-            
-            **2. 🧭 מה הקונים והמוכרים אמורים לעשות במצב כזה?**
-            * **למי שרוצה לקנות:** זהו **לא** אזור אידיאלי לקנייה אגרסיבית. החכם יהיה **להמתין בסבלנות** לנר היפוך חזק כלפי מעלה או לירידה קלה שתבחן את אזור התמיכה.
-            * **למי שרוצה למכור / מחזיק במניה:** אין סיבה לרוץ ולמכור רק כי יש ימים אדומים קטנים כל עוד נפחי המסחר נמוכים. אפשר לשים פקודת הגנה (סטופ-לוס) מתחת לאזור התמיכה.
-            """)
-        elif timeframe == "3 חודשים":
-            st.markdown("""
-            **1. מה רואים בגרף (טווח בינוני - מגמת עליות חזקה):**
-            * **המבנה:** רצף ברור של נרות ירוקים דומיננטיים, כאשר המניה מייצרת שיאים עולים חדשים.
-            * **פטישים ואותות:** הופעה של נרות עם פתילים תחתונים ארוכים באזורי השפלים מסמנת שהמוכרים ניסו להוריד מחיר, אך הקונים קנו כל סחורה מוזלת.
-            
-            **2. 🧭 מה הקונים והמוכרים אמורים לעשות במצב כזה?**
-            * **למי שרוצה לקנות:** המגמה חיובית. ההמלצה המעשית היא **לקנות בירידות קטנות בתוך המגמה העולה** או להצטרף לפריצת התנגדות עם נפח מסחר גבוה. להיזהר לא לרדוף אחרי המניה ביום של זינוק קיצוני.
-            * **למי שרוצה למכור / להגן על רווחים:** כל עוד המניה מייצרת שיאים ושפלים עולים, **מחזיקים בפוזיציה ולא ממהרים למכור**. מומלץ לגרור את פקודת ההגנה כלפי מעלה.
-            """)
-        elif timeframe == "שנה אחרונה":
-            st.markdown("""
-            **1. מה רואים בגרף (טווח ארוך - מחזוריות ומגמה ראשית):**
-            * **המבנה:** תמונה מלאה של תנודות השוק לאורך שנה שלמה – כולל גלי עליות ותיקונים.
-            
-            **2. 🧭 מה הקונים והמוכרים אמורים לעשות במצב כזה?**
-            * **למי שרוצה לקנות:** לבדוק האם המניה נמצאת במגמת עלייה בריאה ולבנות תיק הדרגתית (כניסה בפעימות) ולא בבת אחת.
-            * **למי שרוצה למכור:** האם הגעת ליעד הרווח השנתי? אם כן, מומלץ לממש חלק מהרווחים ולהשאיר את היתרה.
-            """)
-        else:
-            st.markdown("""
-            **1. מה רואים בגרף (כל ההיסטוריה - מבט על-זמני):**
-            * **המבנה:** היסטוריית המסחר המלאה המציגה את רמות התמיכה וההתנגדות החזקות ביותר.
-            
-            **2. 🧭 מה הקונים והמוכרים אמורים לעשות במצב כזה?**
-            * **למי שרוצה לקנות/למכור:** מבט היסטורי נועד לזהות אם המחיר כרגע בתמחור יתר או בהזדמנות ערך סביב רמות שפל רב-שנתיות חזקות שבהן משקיעי ערך אוספים סחורה.
-            """)
+        st.markdown("""
+        * **למי שרוצה לקנות:** המתן לפריצת רמת התנגדות או לחזרה של המחיר לתמיכה המרכזית.
+        * **למי שרוצה למכור:** הגדרת נקודת יציאה או סטופ-לוס בעת שבר מבנה המחיר.
+        """)
 
     elif "טכני ומתנדים" in analysis_page:
-        st.subheader("📈 ממוצעים נעים ומתנדים")
-        tech_data = pd.DataFrame(np.random.randn(30, 2) * 1.5 + base_price, columns=['שער', 'ממוצע נע'])
-        st.line_chart(tech_data)
+        st.subheader("📈 מגמת שער וממוצע נע (Moving Average)")
+        
+        # יצירת טוח נתונים חלק ויפה לניתוח טכני
+        np.random.seed(100)
+        days_tech = pd.date_range(start="2026-05-01", end="2026-08-22", freq="B")
+        m_vals = base_price * (1 + np.cumsum(np.random.normal(0.001, 0.012, len(days_tech))))
+        
+        tech_df = pd.DataFrame({
+            'Date': days_tech,
+            'Price': m_vals,
+            'MA20': pd.Series(m_vals).rolling(window=5).mean().fillna(base_price)
+        })
+
+        # בניית גרף Plotly מתקדם ונקי לניתוח טכני
+        fig_tech = go.Figure()
+
+        # קו המחיר
+        fig_tech.add_trace(go.Scatter(
+            x=tech_df['Date'], y=tech_df['Price'],
+            mode='lines', name='שער מניה',
+            line=dict(color='#1e88e5', width=2.5)
+        ))
+
+        # ממוצע נע
+        fig_tech.add_trace(go.Scatter(
+            x=tech_df['Date'], y=tech_df['MA20'],
+            mode='lines', name='ממוצע נע (MA 20)',
+            line=dict(color='#fb8c00', width=2, dash='dash')
+        ))
+
+        fig_tech.update_layout(
+            template='plotly_white',
+            paper_bgcolor='#ffffff',
+            plot_bgcolor='#ffffff',
+            height=400,
+            margin=dict(l=0, r=2, t=20, b=20),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            yaxis=dict(side="right")
+        )
+
+        st.plotly_chart(fig_tech, use_container_width=True, config={'displayModeBar': False})
+
+        # הסבר מעשי מפורט לניתוח טכני
+        st.markdown("---")
+        st.markdown("### 🎓 איך לקרוא את ממוצע הנע ומה *אמורים לעשות*?")
+        st.markdown("""
+        * **מה רואים בגרף:** הקו הכחול מייצג את תנועת המחיר היומית של המניה, והקו הכתוב המקוטע (MA20) מייצג את ממוצע המחירים הממוצע לתקופה. כאשר קו המחיר נמצא **מעל** הממוצע הנע, המגמה הראשית היא חיובית (שורית). כאשר הוא יורד **מתחתיו**, המגמה נחלשת.
+        * **🧭 מה הקונים והמוכרים אמורים לעשות?**
+          * **לקונים:** אם המחיר נתמך על גבי הממוצע הנע ועולה חזרה כלפי מעלה, זו לרוב נקודת כניסה נוחה (איסוף סחורה במגמה עולה).
+          * **למוכרים / מחזיקים:** חצייה כלפי מטה של הממוצע הנע בלוויית נפח מסחר גבוה מהווה נורת אזהרה שמעידה על סיום המומנטום החיובי ודורשת שקילת מימוש רווחים או הדוק פקודת הגנה.
+        """)
 
     elif "פונדמנטלי" in analysis_page:
         st.subheader("💰 שווי נקי נכסי ותשואות (NAV)")
