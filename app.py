@@ -53,7 +53,8 @@ if stock_symbol:
         timeframe = st.radio(
             "בחר טווח זמן להצגה:",
             ["חודש אחרון", "3 חודשים", "שנה אחרונה", "כל ההיסטוריה"],
-            horizontal=True
+            horizontal=True,
+            key="tf_candlestick"
         )
 
         np.random.seed(42)
@@ -116,28 +117,42 @@ if stock_symbol:
     elif "טכני ומתנדים" in analysis_page:
         st.subheader("📈 מגמת שער וממוצע נע (Moving Average)")
         
-        # יצירת טוח נתונים חלק ויפה לניתוח טכני
+        # בחירת טווח זמנים בדיוק כמו בנרות היפניים
+        timeframe_tech = st.radio(
+            "בחר טווח זמן להצגה:",
+            ["חודש אחרון", "3 חודשים", "שנה אחרונה", "כל ההיסטוריה"],
+            horizontal=True,
+            key="tf_tech"
+        )
+
         np.random.seed(100)
-        days_tech = pd.date_range(start="2026-05-01", end="2026-08-22", freq="B")
-        m_vals = base_price * (1 + np.cumsum(np.random.normal(0.001, 0.012, len(days_tech))))
+        dates_tech = pd.date_range(start="2021-01-01", end="2026-08-22", freq="B")
+        n_tech = len(dates_tech)
+        returns_tech = np.random.normal(0.0002, 0.015, n_tech)
+        price_path_tech = base_price * np.cumprod(1 + returns_tech)
         
         tech_df = pd.DataFrame({
-            'Date': days_tech,
-            'Price': m_vals,
-            'MA20': pd.Series(m_vals).rolling(window=5).mean().fillna(base_price)
+            'Date': dates_tech,
+            'Price': price_path_tech,
+            'MA20': pd.Series(price_path_tech).rolling(window=20).mean().fillna(base_price)
         })
 
-        # בניית גרף Plotly מתקדם ונקי לניתוח טכני
+        if timeframe_tech == "חודש אחרון":
+            tech_df = tech_df.tail(22)
+        elif timeframe_tech == "3 חודשים":
+            tech_df = tech_df.tail(66)
+        elif timeframe_tech == "שנה אחרונה":
+            tech_df = tech_df.tail(250)
+
+        # יצירת גרף Plotly נקי ולבן לגמרי
         fig_tech = go.Figure()
 
-        # קו המחיר
         fig_tech.add_trace(go.Scatter(
             x=tech_df['Date'], y=tech_df['Price'],
             mode='lines', name='שער מניה',
             line=dict(color='#1e88e5', width=2.5)
         ))
 
-        # ממוצע נע
         fig_tech.add_trace(go.Scatter(
             x=tech_df['Date'], y=tech_df['MA20'],
             mode='lines', name='ממוצע נע (MA 20)',
@@ -148,22 +163,27 @@ if stock_symbol:
             template='plotly_white',
             paper_bgcolor='#ffffff',
             plot_bgcolor='#ffffff',
-            height=400,
-            margin=dict(l=0, r=2, t=20, b=20),
+            xaxis_rangeslider_visible=False,
+            dragmode='pan',
+            height=380,
+            margin=dict(l=0, r=2, t=5, b=5),
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
             yaxis=dict(side="right")
         )
+        
+        fig_tech.update_xaxes(fixedrange=False)
+        fig_tech.update_yaxes(fixedrange=True)
 
-        st.plotly_chart(fig_tech, use_container_width=True, config={'displayModeBar': False})
+        st.plotly_chart(fig_tech, use_container_width=True, config={'displayModeBar': False, 'scrollZoom': False, 'doubleClick': 'reset'})
 
         # הסבר מעשי מפורט לניתוח טכני
         st.markdown("---")
-        st.markdown("### 🎓 איך לקרוא את ממוצע הנע ומה *אמורים לעשות*?")
+        st.markdown("### 🎓 איך לקרוא את הממוצע הנע ומה *אמורים לעשות*?")
         st.markdown("""
-        * **מה רואים בגרף:** הקו הכחול מייצג את תנועת המחיר היומית של המניה, והקו הכתוב המקוטע (MA20) מייצג את ממוצע המחירים הממוצע לתקופה. כאשר קו המחיר נמצא **מעל** הממוצע הנע, המגמה הראשית היא חיובית (שורית). כאשר הוא יורד **מתחתיו**, המגמה נחלשת.
+        * **מה רואים בגרף:** הקו הכחול מייצג את תנועת המחיר, והקו הכתום המקוטע (MA20) מייצג את הממוצע הנע. כאשר המחיר מעל הממוצע, המגמה שורית; מתחתיו, המגמה נחלשת.
         * **🧭 מה הקונים והמוכרים אמורים לעשות?**
-          * **לקונים:** אם המחיר נתמך על גבי הממוצע הנע ועולה חזרה כלפי מעלה, זו לרוב נקודת כניסה נוחה (איסוף סחורה במגמה עולה).
-          * **למוכרים / מחזיקים:** חצייה כלפי מטה של הממוצע הנע בלוויית נפח מסחר גבוה מהווה נורת אזהרה שמעידה על סיום המומנטום החיובי ודורשת שקילת מימוש רווחים או הדוק פקודת הגנה.
+          * **לקונים:** קנייה מומלצת כאשר המחיר נתמך על גבי הממוצע הנע ועולה חזרה כלפי מעלה בתוך מגמה חיובית.
+          * **למוכרים / מחזיקים:** חצייה כלפי מטה של הממוצע הנע מסמנת אזהרה שדורשת שקילת מימוש או הצבת הגנה.
         """)
 
     elif "פונדמנטלי" in analysis_page:
