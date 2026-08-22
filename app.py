@@ -7,7 +7,7 @@ from plotly.subplots import make_subplots
 st.set_page_config(page_title="Stock Scanner Pro", page_icon="📈", layout="wide")
 
 st.title("📈 Stock Scanner Pro")
-st.subheader("מערכת ניתוח מניות מתקדמת - גרף מסחר היסטורי")
+st.subheader("מערכת ניתוח מניות מתקדמת")
 
 # תפריט ניווט ראשי
 analysis_page = st.selectbox(
@@ -24,13 +24,11 @@ analysis_page = st.selectbox(
 
 st.divider()
 
-# הזנת מניה
 stock_symbol = st.text_input("הקלד את סמל המניה:", value="דלק קבוצה")
 
 if stock_symbol:
     st.header(f"📊 תוצאות עבור: {stock_symbol}")
     
-    # נתונים בסיסיים
     if "בזק" in stock_symbol:
         price, change, pe, mcap = "7.55 ₪", "-0.04%", "17.25", "20.8 מיליארד ₪"
     elif "דלק" in stock_symbol:
@@ -45,82 +43,87 @@ if stock_symbol:
 
     st.divider()
 
-    # הצגת הדפים לפי בחירת המשתמש
     if "גרף נרות יפניים" in analysis_page:
-        st.subheader("🕯️ גרף נרות יפניים היסטורי עם ציר זמן (TradingView Style)")
-        st.write("השתמש בסרגל הזמן התחתון או לגרור את הגרף כדי לצפות בתנועת המחירים לאורך זמן:")
+        st.subheader("🕯️ גרף נרות יפניים ונפח מסחר")
         
-        # יצירת סימולציית נתונים היסטורית רחבה (לאורך חודשים רבים)
+        # בחירת טווח זמן בצורה נקייה ונוחה למשתמש
+        timeframe = st.radio(
+            "בחר טווח זמן להצגה:",
+            ["חודש אחרון", "3 חודשים", "שנה אחרונה", "כל ההיסטוריה"],
+            horizontal=True
+        )
+
+        # יצירת נתונים
         np.random.seed(42)
-        dates = pd.date_range(start="2025-01-01", end="2026-08-21", freq="B") # ימי מסחר
+        dates = pd.date_range(start="2021-01-01", end="2026-08-22", freq="B")
         n = len(dates)
-        
-        # בניית מסלול מחירים סימולציוני ריאליסטי
-        returns = np.random.normal(0.0005, 0.02, n)
+        returns = np.random.normal(0.0003, 0.018, n)
         price_path = 100 * np.cumprod(1 + returns)
         
         df = pd.DataFrame({
             'Date': dates,
-            'Open': price_path * (1 + np.random.uniform(-0.01, 0.01, n)),
-            'High': price_path * (1 + np.random.uniform(0.005, 0.025, n)),
-            'Low': price_path * (1 - np.random.uniform(0.005, 0.025, n)),
+            'Open': price_path * (1 + np.random.uniform(-0.008, 0.008, n)),
+            'High': price_path * (1 + np.random.uniform(0.003, 0.02, n)),
+            'Low': price_path * (1 - np.random.uniform(0.003, 0.02, n)),
             'Close': price_path,
-            'Volume': np.random.randint(20, 150, n)
+            'Volume': np.random.randint(30, 200, n)
         })
 
-        fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
-                            vertical_spacing=0.03, row_heights=[0.7, 0.3])
+        # סינון הנתונים לפי בחירת המשתמש בכפתורים
+        if timeframe == "חודש אחרון":
+            df = df.tail(22)
+        elif timeframe == "3 חודשים":
+            df = df.tail(66)
+        elif timeframe == "שנה אחרונה":
+            df = df.tail(250)
+        # "כל ההיסטוריה" מציג את כל הנתונים
 
-        # הוספת נרות יפניים
+        fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
+                            vertical_spacing=0.03, row_heights=[0.75, 0.25])
+
         fig.add_trace(go.Candlestick(
             x=df['Date'], open=df['Open'], high=df['High'],
-            low=df['Low'], close=df['Close'], name='נרות יפניים',
+            low=df['Low'], close=df['Close'], name='נרות',
             increasing_line_color='#26a69a', decreasing_line_color='#ef5350'
         ), row=1, col=1)
 
-        # הוספת נפח מסחר
         colors = ['#26a69a' if row['Close'] >= row['Open'] else '#ef5350' for index, row in df.iterrows()]
         fig.add_trace(go.Bar(
-            x=df['Date'], y=df['Volume'], name='נפח מסחר (Volume)',
+            x=df['Date'], y=df['Volume'], name='נפח',
             marker_color=colors
         ), row=2, col=1)
 
-        # הפעלת ציר הזמן והסליידר ההיסטורי
         fig.update_layout(
             template='plotly_dark',
-            xaxis_rangeslider_visible=True,  # מציג את סרגל הזמן בתחתית הגרף
-            height=650,
-            margin=dict(l=20, r=20, t=20, b=20),
-            xaxis2_rangeslider_visible=False
+            xaxis_rangeslider_visible=False,  # הסרת הסליידר המכוער והחזרת ניקיון לגרף
+            height=550,
+            margin=dict(l=10, r=10, t=10, b=10)
         )
 
         st.plotly_chart(fig, use_container_width=True)
-        st.success("💡 **טיפ:** ניתן לגרור את הידיות בסרגל התחתון כדי להתמקד בתקופות זמן ספציפיות או להרחיב את המבט לאחור.")
 
     elif "טכני ומתנדים" in analysis_page:
-        st.subheader("📈 ממוצעים נעים ומתנדים (RSI / MACD)")
-        tech_data = pd.DataFrame(np.random.randn(30, 2) * 1.5 + 85, columns=['שער בפועל', 'ממוצע נע 20'])
+        st.subheader("📈 ממוצעים נעים ומתנדים")
+        tech_data = pd.DataFrame(np.random.randn(30, 2) * 1.5 + 85, columns=['שער', 'ממוצע נע'])
         st.line_chart(tech_data)
-        st.info("מדד RSI עומד על 58.4 – מצביע על מומנטום חיובי בריא.")
 
     elif "פונדמנטלי" in analysis_page:
         st.subheader("💰 שווי נקי נכסי ותשואות (NAV)")
         fund_data = pd.DataFrame({'NAV מוערך': [78, 82, 85, 91, 95]})
         st.area_chart(fund_data)
-        st.markdown(f"מכפיל הרווח הנוכחי עומד על **{pe}**.")
 
     elif "כמותי" in analysis_page:
         st.subheader("🔢 תנודתיות וסיכון")
-        quant_data = pd.DataFrame({'תנודתיות יומית (%)': [1.1, 1.4, 0.8, 1.3, 1.0]})
+        quant_data = pd.DataFrame({'תנודתיות': [1.1, 1.4, 0.8, 1.3, 1.0]})
         st.bar_chart(quant_data)
 
     elif "סנטימנט שוק" in analysis_page:
-        st.subheader("📰 סנטימנט משקיעים ברשתות")
-        sent_data = pd.DataFrame({'מדד סנטימנט': [50, 54, 59, 62, 65]})
+        st.subheader("📰 סנטימנט משקיעים")
+        sent_data = pd.DataFrame({'סנטימנט': [50, 54, 59, 62, 65]})
         st.line_chart(sent_data)
 
     else:
-        st.subheader("🌐 סביבת מאקרו וענף (Top-Down)")
+        st.subheader("🌐 סביבת מאקרו וענף")
         macro_data = pd.DataFrame({'מדד סקטוריאלי': [180, 185, 192, 198, 205]})
         st.area_chart(macro_data)
 
