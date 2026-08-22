@@ -91,20 +91,22 @@ if stock_symbol:
             marker_color=colors
         ), row=2, col=1)
 
-        # ציר מחירים מימין בהצמדה מלאה
+        # ציר מחירים מימין - נעילת ציר ה-Y כך שלא יברח למעלה או למטה
         fig.update_yaxes(side="right", row=1, col=1, automargin=True)
         fig.update_yaxes(side="right", row=2, col=1, automargin=True)
 
-        # הגדרת התנהגות גרירה נכונה למובייל (Pan במקום ריבוע זום אפור)
+        # נעילת תנועת ציר ה-Y כך שהגרירה תהיה אך ורק על ציר הזמן (X) והמחירים יישארו במקום
+        fig.update_xaxes(fixedrange=False)
+        fig.update_yaxes(fixedrange=True)
+
+        # הגדרת פריסה נקייה
         fig.update_layout(
             template='plotly_dark',
             xaxis_rangeslider_visible=False,
-            dragmode='pan',  # גרירה חלקה של הגרף במקום פתיחת תיבת זום
             height=380,
             margin=dict(l=0, r=2, t=5, b=5)
         )
 
-        # קונפיגורציה שמונעת תפריטים צפים מיותרים שנתקעים במגע
         config_options = {
             'displayModeBar': False,
             'scrollZoom': True,
