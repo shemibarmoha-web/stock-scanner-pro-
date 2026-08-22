@@ -74,43 +74,51 @@ if stock_symbol:
         elif timeframe == "שנה אחרונה":
             df = df.tail(250)
 
-        fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
-                            vertical_spacing=0.02, row_heights=[0.8, 0.2])
+        # יצירת הסאב-פלוט עם חלוקה מקצועית לגרף מחיר ולנפח מסחר למטה
+        fig = make_subplots(
+            rows=2, cols=1, 
+            shared_xaxes=True, 
+            vertical_spacing=0.03, 
+            row_heights=[0.78, 0.22]
+        )
 
-        # נרות יפניים
+        # נרות יפניים עם צבעים מקצועיים (ירוק/אדום קלאסיים)
         fig.add_trace(go.Candlestick(
             x=df['Date'], open=df['Open'], high=df['High'],
             low=df['Low'], close=df['Close'], showlegend=False,
-            increasing_line_color='#26a69a', decreasing_line_color='#ef5350'
+            increasing_line_color='#26a69a', decreasing_line_color='#ef5350',
+            increasing_fillcolor='#26a69a', decreasing_fillcolor='#ef5350'
         ), row=1, col=1)
 
-        # נפח מסחר
+        # עמודות נפח מסחר תואמות למגמת הנר
         colors = ['#26a69a' if row['Close'] >= row['Open'] else '#ef5350' for index, row in df.iterrows()]
         fig.add_trace(go.Bar(
             x=df['Date'], y=df['Volume'], showlegend=False,
             marker_color=colors
         ), row=2, col=1)
 
-        # ציר מחירים מימין - נעילת ציר ה-Y כך שלא יברח למעלה או למטה
-        fig.update_yaxes(side="right", row=1, col=1, automargin=True)
-        fig.update_yaxes(side="right", row=2, col=1, automargin=True)
+        # התאמתצירי המחירים והנפח לצד ימין
+        fig.update_yaxes(side="right", row=1, col=1, automargin=True, gridcolor="#2a2e39")
+        fig.update_yaxes(side="right", row=2, col=1, automargin=True, gridcolor="#2a2e39")
+        fig.update_xaxes(gridcolor="#2a2e39")
 
-        # נעילת תנועת ציר ה-Y כך שהגרירה תהיה אך ורק על ציר הזמן (X) והמחירים יישארו במקום
-        fig.update_xaxes(fixedrange=False)
-        fig.update_yaxes(fixedrange=True)
-
-        # הגדרת פריסה נקייה
+        # הגדרת פריסה מקצועית ונקייה (Dark Theme מלא בסטייל טריידינג-וויו)
         fig.update_layout(
             template='plotly_dark',
+            paper_bgcolor='#131722',
+            plot_bgcolor='#131722',
             xaxis_rangeslider_visible=False,
-            height=380,
-            margin=dict(l=0, r=2, t=5, b=5)
+            dragmode='zoom',  # החזרת אפשרות הזום המקורית עם המסגרת האפורה לבחירת אזור
+            height=420,
+            margin=dict(l=0, r=0, t=10, b=10)
         )
 
+        # קונפיגורציית מגע מתקדמת
         config_options = {
             'displayModeBar': False,
             'scrollZoom': True,
-            'doubleClick': 'reset'
+            'doubleClick': 'reset',
+            'responsive': True
         }
 
         st.plotly_chart(fig, use_container_width=True, config=config_options)
