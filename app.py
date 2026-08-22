@@ -17,8 +17,8 @@ analysis_page = st.selectbox(
         "📈 2. ניתוח טכני ומתנדים",
         "💰 3. ניתוח פונדמנטלי (NAV ושווי)",
         "🔢 4. ניתוח כמותי ותנודתיות",
-        "📰 5. ניתוח סנטימנט שוק",
-        "🌐 6. ניתוח מאקרו וענף (Top-Down)"
+        "📰 5. סנטימנט שוק",
+        "🌐 6. מאקרו וענף"
     ]
 )
 
@@ -74,32 +74,34 @@ if stock_symbol:
         elif timeframe == "שנה אחרונה":
             df = df.tail(250)
 
+        # יצירת הגרף עם יחס גובה נמוך יותר (רחב ותפוס על כל המסך)
         fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
-                            vertical_spacing=0.03, row_heights=[0.75, 0.25])
+                            vertical_spacing=0.02, row_heights=[0.78, 0.22])
 
-        # הוספת נרות יפניים
+        # נרות יפניים
         fig.add_trace(go.Candlestick(
             x=df['Date'], open=df['Open'], high=df['High'],
             low=df['Low'], close=df['Close'], name='נרות',
             increasing_line_color='#26a69a', decreasing_line_color='#ef5350'
         ), row=1, col=1)
 
-        # התאמת צבעי עמודות נפח המסחר לירוק ואדום בהתאמה למגמת הנר
+        # נפח מסחר בצבעי ירוק ואדום
         colors = ['#26a69a' if row['Close'] >= row['Open'] else '#ef5350' for index, row in df.iterrows()]
         fig.add_trace(go.Bar(
             x=df['Date'], y=df['Volume'], name='נפח מסחר',
             marker_color=colors
         ), row=2, col=1)
 
-        # ציר המחירים והנפח מימין
+        # ציר מחירים ונפח מימין
         fig.update_yaxes(side="right", row=1, col=1)
         fig.update_yaxes(side="right", row=2, col=1)
 
+        # הגדרת עיצוב: גובה מוקטן (400 פיקסלים) כך שייראה רחב ושטוח
         fig.update_layout(
             template='plotly_dark',
             xaxis_rangeslider_visible=False,
-            height=550,
-            margin=dict(l=10, r=10, t=10, b=10)
+            height=400,
+            margin=dict(l=5, r=5, t=5, b=5)
         )
 
         st.plotly_chart(fig, use_container_width=True)
